@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: guessnumber-postgres
+    environment:
+      POSTGRES_DB: GuessNumberDB
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: guessnumber-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+  api:
+    build:
+      context: .
+      dockerfile: GuessNumber.API/Dockerfile
+    container_name: guessnumber-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=GuessNumberDB;Username=postgres;Password=postgres
+      - JwtSettings__SecretKey=YourSuperSecretKeyForJWTTokenGenerationThatIsAtLeast32CharactersLong!
+      - JwtSettings__Issuer=GuessNumberAPI
+      - JwtSettings__Audience=GuessNumberClient
+      - JwtSettings__ExpirationInMinutes=60
+    ports:
+      - "7000:80"
+      - "7001:443"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
