@@ -62,7 +62,7 @@ package-lock.json
 yarn.lock
 
 # Angular
-frontend/dist/
+
 frontend/.angular/
 
 # Environment files

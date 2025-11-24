@@ -1,5 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://your-api-url.com'
+  apiUrl: 'https://guess-number-fullstack-angular-dotnet-production.up.railway.app'
 };
-
