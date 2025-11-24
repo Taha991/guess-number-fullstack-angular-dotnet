@@ -1,4 +1,4 @@
-using GuessNumber.API.Data;
+﻿using GuessNumber.API.Data;
 using GuessNumber.API.Models;
 using GuessNumber.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -27,8 +27,13 @@ builder.Services.AddCors(options =>
 });
 
 // Database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Host=localhost;Database=GuessNumberDB;Username=postgres;Password=postgres";
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    // fallback local DB
+    connectionString = "Host=localhost;Database=GuessNumberDB;Username=postgres;Password=postgres";
+}
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
@@ -36,7 +41,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // JWT
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["SecretKey"]
-    ?? "YourSuperSecretKeyForJWTTokenGenerationThatIsAtLeast32CharactersLong!";
+                ?? "YourSuperSecretKeyForJWTTokenGenerationThatIsAtLeast32CharactersLong!";
 
 builder.Services.AddAuthentication(options =>
 {
@@ -76,9 +81,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// ? Disable HTTPS redirect in development to avoid CORS redirect
-// app.UseHttpsRedirection();
-
+// No HTTPS redirect (fixes CORS redirect bugs)
 app.UseCors("AllowAll");
 
 app.UseAuthentication();
@@ -92,5 +95,9 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.EnsureCreated();
 }
+
+// 🚀 IMPORTANT FOR RAILWAY (Listen on the provided PORT)
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Urls.Add($"http://0.0.0.0:{port}");
 
 app.Run();
