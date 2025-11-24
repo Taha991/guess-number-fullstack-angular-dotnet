@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:5000' // Use HTTP for development to avoid SSL certificate issues
+  apiUrl: 'https://guess-number-fullstack-angular-dotnet-production.up.railway.app' // Use HTTP for development to avoid SSL certificate issues
 };
 
